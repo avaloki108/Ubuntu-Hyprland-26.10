@@ -20,16 +20,19 @@ SKY_BLUE="$(tput setaf 6)"
 RESET="$(tput sgr0)"
 
 # CLI options
-INSTALL_MODE="${INSTALL_MODE:-ubuntu}"
+INSTALL_MODE="${INSTALL_MODE:-source}"
+HYPRLAND_SOURCE_REPO="${HYPRLAND_SOURCE_REPO:-https://github.com/hyprwm/Hyprland.git}"
+HYPRLAND_SOURCE_BRANCH="${HYPRLAND_SOURCE_BRANCH:-26.04}"
 DO_DRY_RUN=0
 SHOW_HELP=0
 for arg in "$@"; do
     case "$arg" in
-        --install-ppa)
-            INSTALL_MODE=ppa
+        --install-source)
+            INSTALL_MODE=source
             ;;
-        --install-ubuntu)
-            INSTALL_MODE=ubuntu
+        --install-ubuntu|--install-ppa)
+            # Legacy flags are kept for compatibility; source build is enforced for 26.04.
+            INSTALL_MODE=source
             ;;
         --dry-run)
             DO_DRY_RUN=1
@@ -45,14 +48,15 @@ if [ "$SHOW_HELP" = "1" ]; then
 Usage: ./install.sh [options]
 
 Options:
-  --install-ubuntu    Install Hyprland from Ubuntu repositories (default)
-  --install-ppa       Install Hyprland from the community PPA (if available)
+  --install-source    Build Hyprland from source (default)
+  --install-ubuntu    Legacy alias of --install-source
+  --install-ppa       Legacy alias of --install-source
   --dry-run           Print what would be done and exit (non-interactive)
   -h, --help          Show this help and exit
 
 Notes:
-- Ubuntu 26.04 (beta) currently has Hyprland 0.52.x in the official repos.
-- The PPA may not support 26.04 yet. Use --install-ppa only when support exists.
+- Source checkout is locked to branch '${HYPRLAND_SOURCE_BRANCH}'.
+- Branch names containing 'dev' or 'src-build' are refused.
 USAGE
     exit 0
 fi
@@ -60,14 +64,10 @@ fi
 # Non-interactive dry-run exits early (before any prompts)
 if [ "$DO_DRY_RUN" = "1" ]; then
     echo "[DRY-RUN] Hyprland install mode: $INSTALL_MODE"
-    case "$INSTALL_MODE" in
-        ubuntu)
-            echo "[DRY-RUN] Would run: install-scripts/hyprland-ppa.sh (Ubuntu repo path)"
-            ;;
-        ppa)
-            echo "[DRY-RUN] Would run: install-scripts/hyprland-ppa-enable.sh (enable PPA and install)"
-            ;;
-    esac
+    echo "[DRY-RUN] Would build Hyprland from source repo: $HYPRLAND_SOURCE_REPO"
+    echo "[DRY-RUN] Would checkout branch: $HYPRLAND_SOURCE_BRANCH"
+    echo "[DRY-RUN] Would install terminal stack: alacritty zellij tmux"
+    echo "[DRY-RUN] Would install COSMIC stack: cosmic-panel + (cosmic-launcher|cosmic-run)"
     exit 0
 fi
 
@@ -83,8 +83,8 @@ print_color $WARNING "
                 KooL's UBUNTU 26.04 - Hyprland               
     █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
-    This script will install Hyprland 0.52.2 from ubuntu 
-    This is only supported on ubuntu 26.04 or greater! 
+    This script builds Hyprland from the 26.04 source branch.
+    This is only supported on Ubuntu 26.04 or greater!
     If you are not at that level do NOT continue!
          
 "
@@ -195,6 +195,135 @@ execute_script() {
     else
         echo "Script '$script' not found in '$script_directory'." | tee -a "$LOG"
     fi
+}
+
+build_hyprland_from_2604_branch() {
+    local src_dir="$BUILD_SRC/Hyprland"
+    local jobs
+    jobs="$(nproc 2>/dev/null || getconf _NPROCESSORS_ONLN || echo 1)"
+
+    if [[ "$HYPRLAND_SOURCE_BRANCH" == *dev* ]] || [[ "$HYPRLAND_SOURCE_BRANCH" == *src-build* ]]; then
+        echo "${ERROR} Refusing Hyprland source branch '$HYPRLAND_SOURCE_BRANCH'. Use branch '26.04' only." | tee -a "$LOG"
+        exit 1
+    fi
+
+    echo "${INFO} Installing ${SKY_BLUE}Hyprland source build dependencies...${RESET}" | tee -a "$LOG"
+    sudo apt install -y \
+        build-essential \
+        ccache \
+        clang \
+        cmake \
+        git \
+        libglaze-dev \
+        libre2-dev \
+        libudis86-dev \
+        libxcb-errors-dev \
+        llvm \
+        meson \
+        ninja-build \
+        pkg-config 2>&1 | tee -a "$LOG"
+
+    echo "${INFO} Checking out ${SKY_BLUE}Hyprland ${HYPRLAND_SOURCE_BRANCH}${RESET} from ${SKY_BLUE}${HYPRLAND_SOURCE_REPO}${RESET}..." | tee -a "$LOG"
+    if [ -d "$src_dir/.git" ]; then
+        git -C "$src_dir" fetch --all --tags --prune 2>&1 | tee -a "$LOG"
+    else
+        rm -rf "$src_dir"
+        git clone --recursive "$HYPRLAND_SOURCE_REPO" "$src_dir" 2>&1 | tee -a "$LOG"
+    fi
+
+    if ! git -C "$src_dir" checkout -f "$HYPRLAND_SOURCE_BRANCH" 2>&1 | tee -a "$LOG"; then
+        echo "${ERROR} Could not checkout '$HYPRLAND_SOURCE_BRANCH'. Set HYPRLAND_SOURCE_REPO/HYPRLAND_SOURCE_BRANCH to a valid 26.04 source branch." | tee -a "$LOG"
+        exit 1
+    fi
+    git -C "$src_dir" submodule update --init --recursive 2>&1 | tee -a "$LOG"
+
+    echo "${INFO} Building ${SKY_BLUE}Hyprland${RESET} from branch ${SKY_BLUE}${HYPRLAND_SOURCE_BRANCH}${RESET}..." | tee -a "$LOG"
+    CC="${CC:-clang}" CXX="${CXX:-clang++}" \
+        cmake -S "$src_dir" -B "$src_dir/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER="${CC:-clang}" \
+            -DCMAKE_CXX_COMPILER="${CXX:-clang++}" \
+            -DCMAKE_CXX_STANDARD=26 \
+            -DCMAKE_CXX_STANDARD_REQUIRED=ON \
+            -DCMAKE_CXX_EXTENSIONS=ON 2>&1 | tee -a "$LOG"
+    cmake --build "$src_dir/build" -j "$jobs" 2>&1 | tee -a "$LOG"
+    sudo cmake --install "$src_dir/build" 2>&1 | tee -a "$LOG"
+}
+
+install_terminal_stack() {
+    echo "${INFO} Installing ${SKY_BLUE}terminal stack${RESET} (alacritty, zellij, tmux)..." | tee -a "$LOG"
+    sudo apt install -y alacritty zellij tmux 2>&1 | tee -a "$LOG"
+}
+
+set_alacritty_default_terminal() {
+    if ! command -v update-alternatives >/dev/null 2>&1; then
+        return
+    fi
+
+    if [ ! -x /usr/bin/alacritty ]; then
+        echo "${WARN} alacritty binary not found in /usr/bin. Skipping default terminal setup." | tee -a "$LOG"
+        return
+    fi
+
+    if sudo update-alternatives --query x-terminal-emulator >/dev/null 2>&1; then
+        if ! sudo update-alternatives --list x-terminal-emulator 2>/dev/null | grep -qx "/usr/bin/alacritty"; then
+            sudo update-alternatives --install /usr/bin/x-terminal-emulator x-terminal-emulator /usr/bin/alacritty 90 2>&1 | tee -a "$LOG"
+        fi
+        sudo update-alternatives --set x-terminal-emulator /usr/bin/alacritty 2>&1 | tee -a "$LOG"
+    fi
+}
+
+apt_pkg_exists() {
+    apt-cache show "$1" >/dev/null 2>&1
+}
+
+install_cosmic_stack() {
+    local launcher_pkg=""
+    local installable=()
+    local cosmic_core=(
+        cosmic-panel
+        cosmic-session
+        cosmic-comp
+        cosmic-bg
+        cosmic-files
+        cosmic-settings
+        xdg-desktop-portal-cosmic
+    )
+
+    for launcher_candidate in cosmic-launcher cosmic-run; do
+        if apt_pkg_exists "$launcher_candidate"; then
+            launcher_pkg="$launcher_candidate"
+            break
+        fi
+    done
+
+    if [ -n "$launcher_pkg" ]; then
+        cosmic_core+=("$launcher_pkg")
+    else
+        echo "${WARN} Neither cosmic-launcher nor cosmic-run found in apt cache." | tee -a "$LOG"
+    fi
+
+    for pkg in "${cosmic_core[@]}"; do
+        if apt_pkg_exists "$pkg"; then
+            installable+=("$pkg")
+        else
+            echo "${WARN} Package ${YELLOW}$pkg${RESET} is not available in apt for this system. Skipping." | tee -a "$LOG"
+        fi
+    done
+
+    if [ ${#installable[@]} -eq 0 ]; then
+        echo "${WARN} No COSMIC packages were available to install." | tee -a "$LOG"
+        return
+    fi
+
+    echo "${INFO} Installing ${SKY_BLUE}COSMIC desktop components${RESET}..." | tee -a "$LOG"
+    sudo apt install -y "${installable[@]}" 2>&1 | tee -a "$LOG"
+
+    for unit in cosmic-panel.service cosmic-comp.service cosmic-bg.service cosmic-launcher.service cosmic-run.service; do
+        if [ -f "/usr/lib/systemd/user/$unit" ] || [ -f "/lib/systemd/user/$unit" ] || [ -f "/etc/systemd/user/$unit" ]; then
+            systemctl --user enable --now "$unit" 2>&1 | tee -a "$LOG" || true
+        fi
+    done
 }
 
 #################
@@ -395,17 +524,17 @@ echo "${INFO} Installing ${SKY_BLUE}KooL Hyprland packages...${RESET}" | tee -a 
 sleep 1
 execute_script "01-hypr-pkgs.sh"
 
-# Install Hyprland from Ubuntu repositories by default; optional PPA when requested
+# Install terminal stack and set alacritty as default terminal
+sleep 1
+install_terminal_stack
+set_alacritty_default_terminal
+
+# Build Hyprland from source branch 26.04
 case "$INSTALL_MODE" in
-  ubuntu)
-    echo "${INFO} Installing Hyprland from ${SKY_BLUE}Ubuntu repositories${RESET}..." | tee -a "$LOG"
+  source)
+    echo "${INFO} Building Hyprland from ${SKY_BLUE}source branch ${HYPRLAND_SOURCE_BRANCH}${RESET}..." | tee -a "$LOG"
     sleep 1
-    execute_script "hyprland-ppa.sh"
-    ;;
-  ppa)
-    echo "${INFO} Installing Hyprland from ${SKY_BLUE}community PPA${RESET} (if available)..." | tee -a "$LOG"
-    sleep 1
-    execute_script "hyprland-ppa-enable.sh"
+    build_hyprland_from_2604_branch
     ;;
   *)
     echo "${ERROR} Unknown install mode: $INSTALL_MODE" | tee -a "$LOG"
@@ -419,11 +548,11 @@ execute_script "wallust.sh"
 sleep 1
 execute_script "swww.sh"
 sleep 1
-execute_script "rofi-wayland.sh"
-sleep 1
 execute_script "hyprlock.sh"
 sleep 1
 execute_script "hypridle.sh"
+sleep 1
+install_cosmic_stack
 
 #execute_script "imagemagick.sh" #this is for compiling from source. 07 Sep 2024
 # execute_script "waybar-git.sh" only if waybar on repo is old
@@ -553,7 +682,7 @@ if [ -n "$hypr_cmd" ]; then
     else
         printf "\n"
     fi
-    printf "\n${NOTE} However, it is ${YELLOW}highly recommended to reboot${RESET} your system.\n\n"
+    printf "\n${NOTE} Reboot or re-login, then choose the ${SKY_BLUE}COSMIC desktop${RESET} session to apply the changes.\n\n"
 
     while true; do
         echo -n "${CAT} Would you like to reboot now? (y/n): "
