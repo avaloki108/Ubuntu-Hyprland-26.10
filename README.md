@@ -1,8 +1,8 @@
 <div align="center">
 
-# 💌 KooL's Ubuntu Hyprland Install Script 💌
+# 💌 A fork of KooL's Ubuntu Hyprland Install Script 💌
 
-## For Ubuntu 26.04 Resolute Raccoon ONLY!!!
+## For Ubuntu 24+ ONLY!!!
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JaKooLit/Hyprland-Dots/main/assets/latte.png" width="400" />
