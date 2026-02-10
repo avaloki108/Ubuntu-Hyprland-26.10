@@ -18,23 +18,45 @@ if ! source "$(dirname "$(readlink -f "$0")")/Global_functions.sh"; then
   exit 1
 fi
 
-# Check if Hyprland-Dots exists
-printf "${NOTE} Cloning and Installing ${SKY_BLUE}KooL's Hyprland Dots for Ubuntu${RESET}....\n"
+LOG="Install-Logs/install-$(date +%d-%H%M%S)_dotfiles.log"
+stamp="$(date +%Y%m%d-%H%M%S)"
+backup_root="$HOME/.config/.hyprland-backups/$stamp"
+manifest="$backup_root/manifest.txt"
+mkdir -p "$backup_root"
 
-# Check if Hyprland-Dots exists
-if [ -d Hyprland-Dots-Ubuntu ]; then
-  cd Hyprland-Dots-Ubuntu
-  git stash && git pull
-  chmod +x copy.sh
-  ./copy.sh 
+printf "${NOTE} Cloning and Installing ${SKY_BLUE}KooL's Hyprland Dots for Ubuntu${RESET}....\n" | tee -a "$LOG"
+
+if [ -d Hyprland-Dots-Ubuntu/.git ]; then
+  cd Hyprland-Dots-Ubuntu || exit 1
+  git fetch --all 2>&1 | tee -a "$LOG"
+  git checkout "$dots_tag" 2>&1 | tee -a "$LOG"
+  git pull --ff-only 2>&1 | tee -a "$LOG"
 else
-  if git clone --depth=1 https://github.com/JaKooLit/Hyprland-Dots Hyprland-Dots-Ubuntu; then
-    cd Hyprland-Dots-Ubuntu || exit 1
-    chmod +x copy.sh
-    ./copy.sh 
-  else
-    echo -e "$ERROR Can't download ${YELLOW}KooL's Hyprland-Dots-Ubuntu${RESET}"
-  fi
+  rm -rf Hyprland-Dots-Ubuntu
+  git clone --depth=1 --branch "$dots_tag" https://github.com/JaKooLit/Hyprland-Dots Hyprland-Dots-Ubuntu 2>&1 | tee -a "$LOG"
+  cd Hyprland-Dots-Ubuntu || exit 1
 fi
 
+echo "Dotfiles backup root: $backup_root" | tee -a "$LOG"
+echo "Dotfiles backup root: $backup_root" > "$manifest"
+
+if [ ! -d "Config" ]; then
+  echo -e "${ERROR} Expected dotfiles directory 'Config' was not found in Hyprland-Dots-Ubuntu" | tee -a "$LOG"
+  exit 1
+fi
+
+while IFS= read -r -d '' src_dir; do
+  rel_path="${src_dir#./Config/}"
+  target_dir="$HOME/.config/$rel_path"
+
+  if [ -d "$target_dir" ]; then
+    backed_up_to="$(backup_path "$target_dir")"
+    echo "Backed up $target_dir -> $backed_up_to" | tee -a "$LOG" >> "$manifest"
+  fi
+
+  mkdir -p "$target_dir"
+  rsync -a --delete --backup --backup-dir="$backup_root/.rsync-overwrites/$rel_path" "$src_dir/" "$target_dir/" 2>&1 | tee -a "$LOG" >> "$manifest"
+done < <(find ./Config -mindepth 1 -maxdepth 1 -type d -print0)
+
+echo -e "${OK} Dotfiles merged into ~/.config with timestamped backups at $backup_root" | tee -a "$LOG"
 printf "\n%.0s" {1..2}

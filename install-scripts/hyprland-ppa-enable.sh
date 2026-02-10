@@ -1,6 +1,6 @@
 #!/bin/bash
 # 💫 https://github.com/JaKooLit 💫 #
-# Enable the Hyprland PPA and install packages (best-effort; guards for 26.04 support)
+# Enable Hyprland PPA for Ubuntu 24.04
 
 set -euo pipefail
 
@@ -13,49 +13,16 @@ source "$(dirname "$(readlink -f "$0")")/Global_functions.sh"
 
 LOG="Install-Logs/install-$(date +%d-%H%M%S)_hyprland-ppa-enable.log"
 
-note() { echo -e "${NOTE} $*" | tee -a "$LOG"; }
-info() { echo -e "${INFO} $*" | tee -a "$LOG"; }
-
-# Ensure repo tooling exists
-install_package software-properties-common 2>&1 | tee -a "$LOG" || true
-
-# Add the PPA (idempotent)
-if ! grep -R "^deb .*cppiber.*hyprland" /etc/apt/sources.list /etc/apt/sources.list.d 2>/dev/null | grep -q .; then
-  note "Adding PPA: ppa:cppiber/hyprland"
-  if ! sudo add-apt-repository -y ppa:cppiber/hyprland 2>&1 | tee -a "$LOG"; then
-    echo -e "${ERROR} Failed to add the Hyprland PPA. It may not support this Ubuntu release yet." | tee -a "$LOG"
-    exit 1
-  fi
-else
-  note "Hyprland PPA already present; continuing"
+detect_os
+if [ "$OS_ID" != "ubuntu" ] || [ "$OS_VERSION_ID" != "24.04" ] || [ "$OS_CODENAME" != "noble" ]; then
+  echo -e "${WARN} hyprland-ppa-enable.sh is tuned for Ubuntu 24.04 noble. Detected ${OS_ID} ${OS_VERSION_ID} (${OS_CODENAME})." | tee -a "$LOG"
 fi
 
-info "Running apt update"
-sudo apt update 2>&1 | tee -a "$LOG"
+ensure_ppa_cppiber_hyprland "$LOG"
 
-# Verify that the PPA provides a candidate for hyprland on this series
-if ! apt-cache policy hyprland | awk '/Candidate:/ {print $2}' | grep -vq '(none)'; then
-  echo -e "${ERROR} PPA does not provide a hyprland candidate for this Ubuntu release. Use --install-ubuntu instead." | tee -a "$LOG"
+if ! apt_has_candidate hyprland; then
+  echo -e "${ERROR} No hyprland candidate detected after enabling PPA." | tee -a "$LOG"
   exit 1
 fi
 
-# Install hyprland and common companions from PPA when available
-PKGS=(
-  hyprland
-  hypridle
-  hyprlock
-  hyprwayland-scanner
-  hyprland-qtutils
-  xdg-desktop-portal-hyprland
-)
-
-for p in "${PKGS[@]}"; do
-  if apt-cache policy "$p" | grep -q "Candidate: \\S"; then
-    info "Installing/Upgrading $p from PPA"
-    sudo apt install -y "$p" 2>&1 | tee -a "$LOG"
-  else
-    note "$p not available from PPA for this release; skipping"
-  fi
-done
-
-note "PPA-based Hyprland installation completed."
+echo -e "${OK} Hyprland PPA is enabled and candidate packages are available." | tee -a "$LOG"

@@ -139,15 +139,19 @@ done
 # Only remove hyprcursor-util when explicitly using the Hyprland PPA path (not for Ubuntu repo installs)
 if [ "${HYPR_USE_PPA:-0}" = "1" ] && dpkg -l | grep -q '^ii  hyprcursor-util '; then
     echo "${INFO} Removing conflicting hyprcursor-util (Ubuntu repo) to allow libhyprcursor1 from PPA" | tee -a "$LOG"
-    sudo apt -y purge hyprcursor-util 2>&1 | tee -a "$LOG" || true
-    sudo apt -y autoremove 2>&1 | tee -a "$LOG" || true
+    if [ "${DRY_RUN:-0}" = "1" ]; then
+        echo "[DRY-RUN] sudo apt -y purge hyprcursor-util" | tee -a "$LOG"
+    else
+        sudo apt -y purge hyprcursor-util 2>&1 | tee -a "$LOG" || true
+    fi
+    apt_repair "$LOG"
 fi
 
 # Installation of main dependencies
 printf "\n%s - Installing ${SKY_BLUE}main dependencies....${RESET} \n" "${NOTE}"
 
 for PKG1 in "${dependencies[@]}" "${hyprland_dep[@]}"; do
-    install_package "$PKG1" "$LOG"
+    install_if_available "$PKG1" "$LOG"
 done
 
 printf "\n%.0s" {1..1}
