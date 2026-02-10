@@ -1,14 +1,14 @@
 <div align="center">
 
-# 💌 A fork of KooL's Ubuntu Hyprland Install Script 💌
+# 💌 A Fork of KooL's Ubuntu Hyprland Install Script 💌
 
-## For Ubuntu 24+ ONLY!!!
+## For Ubuntu 24.04 Noble Numbat
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/JaKooLit/Hyprland-Dots/main/assets/latte.png" width="400" />
 </p>
 
-![GitHub Repo stars](https://img.shields.io/github/stars/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=cba6f7) ![GitHub last commit](https://img.shields.io/github/last-commit/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=b4befe) ![GitHub repo size](https://img.shields.io/github/repo-size/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=cba6f7) <a href="https://discord.gg/RZJgC7KAKm"> <img src="https://img.shields.io/discord/1151869464405606400?style=for-the-badge&logo=discord&color=cba6f7&link=https%3A%2F%2Fdiscord.gg%kool-tech-world"> </a>
+![GitHub Repo stars](https://img.shields.io/github/stars/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=cba6f7) ![GitHub last commit](https://img.shields.io/github/last-commit/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=b4befe) ![GitHub repo size](https://img.shields.io/github/repo-size/JaKooLit/Ubuntu-Hyprland?style=for-the-badge&color=cba6f7) <a href="https://discord.gg/kool-tech-world"> <img src="https://img.shields.io/discord/1151869464405606400?style=for-the-badge&logo=discord&color=cba6f7&link=https%3A%2F%2Fdiscord.gg%kool-tech-world"> </a>
 
 <br/>
 </div>
@@ -20,6 +20,17 @@
   <a href="#gallery-and-videos"><kbd> <br> Gallery <br> </kbd></a>&ensp;&ensp;
  </div><br>
 
+> [!NOTE]
+> Ubuntu 24.04 LTS specific
+
+### Update:
+
+- We are now using a PPA to get current Hyprland Packages
+- https://github.com/cppiber/hyprland-ppa
+- Install times are much shorter
+- Updates to Hyprland will come during normal updates
+- The current Jak dotfiles are compatible with this release
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/JaKooLit/Hyprland-Dots/main/assets/latte.png" width="200" />
 </p>
@@ -30,7 +41,7 @@
 </div>
 <div align="center">
 <br>
-  <a href="https://github.com/JaKooLit/Hyprland-Dots/tree/Deb-Untu-Dots"><kbd> <br> Hyprland-Dots Ubuntu repo <br> </kbd></a>&ensp;&ensp;
+  <a href="https://github.com/JaKooLit/Hyprland-Dots/tree/Ubuntu-24.04-Dots"><kbd> <br> Hyprland-Dots Ubuntu 24.04 repo <br> </kbd></a>&ensp;&ensp;
   <a href="https://www.youtube.com/playlist?list=PLDtGd5Fw5_GjXCznR0BzCJJDIQSZJRbxx"><kbd> <br> Youtube <br> </kbd></a>&ensp;&ensp;
   <a href="https://github.com/JaKooLit/Hyprland-Dots/wiki"><kbd> <br> Wiki <br> </kbd></a>&ensp;&ensp;
   <a href="https://github.com/JaKooLit/Hyprland-Dots/wiki/Keybinds"><kbd> <br> Keybinds <br> </kbd></a>&ensp;&ensp;
@@ -55,7 +66,7 @@ https://github.com/user-attachments/assets/49bc12b2-abaf-45de-a21c-67aacd9bb872
 </div>
 
 > [!IMPORTANT]
-> install a backup tool like `snapper` or `timeshift`. and Backup your system before installing hyprland using this script (HIGHLY RECOMMENDED)
+> install a backup tool like `snapper` or `timeshift`. and Backup your system before installing hyprland using this script (HIGHLY RECOMMENDED).
 
 > [!CAUTION]
 > Download this script on a directory where you have write permissions. ie. HOME. Or any directory within your home directory. Else script will fail
@@ -63,8 +74,8 @@ https://github.com/user-attachments/assets/49bc12b2-abaf-45de-a21c-67aacd9bb872
 #### ⚠️ Pre-requisites and VERY Important!
 
 - Do not run this installer as sudo or as root
-- This Installer requires a user with a priviledge to install packages
-- This is only 26.04 Resolute Raccoon and above. Check [`MAIN BRANCH`](https://github.com/JaKooLit/Ubuntu-Hyprland/tree/main) for other Ubuntu Versions
+- This Installer requires a user with sudo priviledge to install packages
+- This is only 24.04 LTS Noble Numbat. Check [`MAIN BRANCH`](https://github.com/JaKooLit/Ubuntu-Hyprland/tree/main) for other Ubuntu Versions
 
 ### Gallery and Videos
 
@@ -75,16 +86,21 @@ https://github.com/user-attachments/assets/49bc12b2-abaf-45de-a21c-67aacd9bb872
 
 ### 🪧🪧🪧 ANNOUNCEMENT 🪧🪧🪧
 
-- This Repo does not contain Hyprland Dots or configs! Dotfiles can be checked here [`Hyprland-Dots`](https://github.com/JaKooLit/Hyprland-Dots/tree/Deb-Untu-Dots) . During installation, if you opt to copy pre-configured dots, it will be downloaded from that centralized repo.
+- This Repo does not contain Hyprland Dots or configs! Dotfiles can be checked here [`Hyprland-Dots`](https://github.com/JaKooLit/Hyprland-Dots/tree/Ubuntu-24.04-Dots) . During installation, if you opt to copy pre-configured dots, it will be downloaded from that centralized repo.
 - Hyprland-Dots use are constantly evolving / improving. you can check CHANGELOGS here [`Hyprland-Dots-Changelogs`](https://github.com/JaKooLit/Hyprland-Dots/wiki/Changelogs)
 - Since the Hyprland-Dots are evolving, some of the screenshots maybe old
 - the wallpaper offered to be downloaded towards the end is from this [`REPO`](https://github.com/JaKooLit/Wallpaper-Bank)
-- The dotfiles that will be pulled by this installer is only specific. Since newer dotfiles might not work properly
 
-### ✨ Some notes on this installer / Prerequisites
+#### ✨ Some notes on this installer / Prerequisites
 
-- This script is to install Hyprland on Ubuntu 26.04 Resolute Raccoon If you have nvidia, and wanted to use proprietary drivers, uninstall nouveau first (if installed). This script will be installing proprietary nvidia drivers and will not deal with removal of nouveau.
+- This script is meant to install Hyprland in Ubuntu 24.04 LTS ONLY!!
+- `nm-applet-gnome` has been replaced with `nm-tray` to resolve the earlier issues with the old applet
+- If you have nvidia, and wanted to use proprietary drivers, uninstall nouveau first (if installed). This script will be installing proprietary nvidia drivers and will not deal with removal of nouveau.
 - NVIDIA users / owners, after installation, check [`THIS`](https://github.com/JaKooLit/Hyprland-Dots/wiki/Notes_to_remember#--for-nvidia-gpu-users)
+
+#### ⚠️ WARNING! nwg-look takes long time to install.
+
+- nwg-look is a utility to costumize your GTK theme. It's a LXAppearance like. Its a good tool though but this package is entirely optional
 
 #### ✨ Costumize the packages to be installed
 
@@ -105,10 +121,8 @@ sudo apt install --no-install-recommends -y sddm
 
 #### 💫 SDDM and GTK Themes offered
 
-- If you opted to install SDDM theme, here's the [`LINK`](https://github.com/JaKooLit/simple-sddm-2) which is a modified fork of [`LINK`](https://github.com/Keyitdev/sddm-astronaut-theme)
-- If you opted to install GTK Themes, Icons, here's the [`LINK`](https://github.com/JaKooLit/GTK-themes-icons). This also includes Bibata Modern Ice cursor.
-
-####
+- If you opted to install SDDM theme, here's the [`LINK`](https://github.com/JaKooLit/simple-sddm)
+- If you opted to install GTK Themes, Icons, here's the [`LINK`](https://github.com/JaKooLit/GTK-themes-icons) & Bibata Cursor Modern Ice (assets directory)
 
 ## ✨ Auto clone and install
 
@@ -119,7 +133,7 @@ sudo apt install --no-install-recommends -y sddm
 - NOTE: `curl` package is required before running this command
 
 ```bash
-sh <(curl -L https://raw.githubusercontent.com/JaKooLit/Ubuntu-Hyprland/25.10/auto-install.sh)
+sh <(curl -L https://raw.githubusercontent.com/JaKooLit/Ubuntu-Hyprland/24.04/auto-install.sh)
 ```
 
 ## ✨ to use this script
@@ -127,8 +141,8 @@ sh <(curl -L https://raw.githubusercontent.com/JaKooLit/Ubuntu-Hyprland/25.10/au
 > clone this repo (latest commit only) by using git. Change directory, make executable and run the script
 
 ```bash
-git clone --depth=1 -b 26.04 https://github.com/JaKooLit/Ubuntu-Hyprland.git ~/Ubuntu-Hyprland-25.10
-cd ~/Ubuntu-Hyprland-26.04
+git clone -b 24.04 --depth=1 https://github.com/JaKooLit/Ubuntu-Hyprland.git ~/Ubuntu-Hyprland-24.04
+cd ~/Ubuntu-Hyprland-24.04
 chmod +x install.sh
 ./install.sh
 ```
@@ -173,23 +187,56 @@ source ~/.zshrc
 
 #### ✨ Packages that are manually downloaded and build. These packages will not be updated by apt and have to be manually updated
 
+- Hyprland [`LINK`](https://github.com/hyprwm/Hyprland)
+- nwg-look [`LINK`](https://github.com/nwg-piotr/nwg-look)
 - Asus ROG asusctl [`LINK`](https://gitlab.com/asus-linux/asusctl) and superfxctl [`LINK`](https://gitlab.com/asus-linux/supergfxctl)
 - swww [`LINK`](https://github.com/Horus645/swww)
-- hyprland [`LINK`](https://github.com/hyprwm/)
+- hyprlock [`LINK`](https://github.com/hyprwm/hyprlock)
+- hypridle [`LINK`](https://github.com/hyprwm/hypridle)
+- hyprlang [`LINK`](https://github.com/hyprwm/hyprlang)
+- hyprcursor [`LINK`](https://github.com/hyprwm/hyprcursor)
+- swappy [`LINK`](https://github.com/jtheoof/swappy)
+- xdg-desktop-portal-hyprland [`LINK`](https://github.com/hyprwm/xdg-desktop-portal-hyprland)
 - rofi-wayland [`LINK`](https://github.com/lbonn/rofi)
-
-> [!TIP]
-> To update to latest packages, re-running this script will auto update all. Script is configured to pull latest packages build for you.
+    > [!TIP]
+    > To update to latest packages, re-running this script will auto update all. Script is configured to pull latest packages build for you.
 
 #### 🤬 FAQ
 
 #### Most common question I got is, Hey Ja, Why the heck it is taking long time to install? Other distro like Arch its only a minute or two. Why here takes like forever?!?!?!
 
-- Well, some packages are downloaded, build and compiled from SOURCE. Unlike Other distros, they already have prepacked binary that can just download and install.
-- Additionally, with all the Hyprland pacakages building from source, it will take longer. Please be patient.
+- Well, most of the core packages are downloaded and Build and compiled from SOURCE. There are no pre-built binary (yet) for Debian and Ubuntu. Unlike Other distros, they already have prepacked binary that can just download and install.
 
 > [!NOTE]
 > This script does not setup audio. Kindly set up. If you have not, I recommend pipewire. `sudo apt install -y pipewire`
+
+## 🛎 **_ DEBIAN and UBUNTU Hyprland Dots UPDATING NOTES _**
+
+> [!IMPORTANT]
+> This is very Important for Debian and Ubuntu Dots
+
+- Some parts of KooL's Hyprland Dots [`LINK`](https://github.com/JaKooLit/Hyprland-Dots) are not compatible on Debian and Ubuntu especially the hyprland settings.
+- That is the reason the DOTS for those distro's are "fixed" and they are being pulled on different branch of KooL Dots.
+
+- To update your KooL's Dots follow this [WIKI](https://github.com/JaKooLit/Hyprland-Dots/wiki/Install_&_Update#%EF%B8%8F%EF%B8%8F%EF%B8%8F%EF%B8%8F---debian-and-ubuntu-hyprland-dots-updating-notes--%EF%B8%8F%EF%B8%8F%EF%B8%8F%EF%B8%8F%EF%B8%8F)
+
+### 🚩 changing login manager to SDDM
+
+- if you really want to change login manager, there are couple of things you need to carry out before running this install script
+- first install sddm. the no-install-recommends is suggested else it will pull lots of plasma depencies.
+
+```bash
+sudo apt install --no-install-recommends -y sddm
+```
+
+- then ran `sudo dpkg-reconfigure sddm` choose sddm and then reboot.
+- once reboot done, you can ran the script and choose sddm & sddm theme
+- [LINK](https://www.simplified.guide/ubuntu/switch-to-gdm) for some guide
+
+#### ❗ some known issues on this Installer
+
+- some users reported that they have to install some packages. It is in the install-scripts/force-install.sh
+- At this time the packages force to install are the following `imagemagick`
 
 #### 🎞️ AGS Overview DEMO
 
@@ -210,13 +257,6 @@ source ~/.zshrc
 
 > [!TIP]
 > KooL Hyprland has a searchable keybind function via rofi. (SUPER SHIFT K) or right click the `HINTS` waybar button
-
-## 🛎 **_ DEBIAN and UBUNTU Hyprland Dots UPDATING NOTES _**
-
-> [!IMPORTANT]
-> This is very Important for Debian and Ubuntu Dots
-
-- With support for Hyprland 0.51.1+ the standard dotfiles are compatible.
 
 #### 🙋 👋 Having issues or questions?
 
@@ -260,10 +300,6 @@ env = GBM_BACKEND,nvidia-drm
 env = WLR_RENDERER_ALLOW_SOFTWARE,1
 ```
 
-#### 🫥 Improving performance for Older Nvidia Cards using driver 470
-
-- [`SEE HERE`](https://github.com/JaKooLit/Hyprland-Dots/discussions/123#discussion-6035205)
-
 #### ❗ other known issues
 
 > [!NOTE]
@@ -282,13 +318,17 @@ cd ~/Ubuntu-Hyprland
 - [ ] Rofi-wayland is compatible with x11 so no need to worry.
 - [ ] Does not work in Ubuntu 23.10 and older
 - [ ] sddm blackscreen when log-out
-- [ ] Installing SDDM if or any other Login Manager installed. See [`Issue 2 - SDDM`](https://github.com/JaKooLit/Ubuntu-Hyprland/issues/2)
+- [ ] Installing SDDM if or any other Login Manager installed. See [`Issue 2 - SDDM`](https://github.com/JaKooLit/Debian-Hyprland/issues/2)
 - [ ] network is down or become unmanaged [`This`](https://askubuntu.com/questions/71159/network-manager-says-device-not-managed) might help
 - [ ] See note above about Hyprland-Dots newer version incompatibility
 
+#### 🫥 Improving performance for Older Nvidia Cards using driver 470
+
+- [`SEE HERE`](https://github.com/JaKooLit/Hyprland-Dots/discussions/123#discussion-6035205)
+
 #### 📒 Final Notes
 
-- join my discord channel [`Discord`](https://discord.com/invite/kool-tech-world)
+- join my discord channel [`Discord`](https://discord.gg/RZJgC7KAKm)
 - Feel free to copy, re-distribute, and use this script however you want. Would appreciate if you give me some loves by crediting my work :)
 
 #### ✍️ Contributing
@@ -296,7 +336,7 @@ cd ~/Ubuntu-Hyprland
 - As stated above, these script does not contain actual config files. These are only the installer of packages
 - If you want to contribute and/or test the Hyprland-Dotfiles (development branch), [`Hyprland-Dots-Development`](https://github.com/JaKooLit/Hyprland-Dots/tree/development)
 - Want to contribute on KooL-Hyprland-Dots Click [`HERE`](https://github.com/JaKooLit/Hyprland-Dots/blob/main/CONTRIBUTING.md) for a guide how to contribute
-- Want to contribute on This Installer? Click [`HERE`](https://github.com/JaKooLit/Ubuntu-Hyprland/blob/25.04/CONTRIBUTING.md) for a guide how to contribute
+- Want to contribute on This Installer? Click [`HERE`](https://github.com/JaKooLit/Ubuntu-Hyprland/blob/24.04/CONTRIBUTING.md) for a guide how to contribute
 
 #### 👍👍👍 Thanks and Credits!
 
