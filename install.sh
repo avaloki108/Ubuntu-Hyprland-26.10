@@ -20,7 +20,7 @@ SKY_BLUE="$(tput setaf 6)"
 RESET="$(tput sgr0)"
 
 # CLI options
-INSTALL_MODE="${INSTALL_MODE:-source}"
+INSTALL_MODE="${INSTALL_MODE:-auto}"
 HYPRLAND_SOURCE_REPO="${HYPRLAND_SOURCE_REPO:-https://github.com/hyprwm/Hyprland.git}"
 HYPRLAND_SOURCE_BRANCH="${HYPRLAND_SOURCE_BRANCH:-26.04}"
 DO_DRY_RUN=0
@@ -31,8 +31,8 @@ for arg in "$@"; do
             INSTALL_MODE=source
             ;;
         --install-ubuntu|--install-ppa)
-            # Legacy flags are kept for compatibility; source build is enforced for 26.04.
-            INSTALL_MODE=source
+            # Install Hyprland from apt/ppa
+            INSTALL_MODE=ppa
             ;;
         --dry-run)
             DO_DRY_RUN=1
@@ -48,27 +48,22 @@ if [ "$SHOW_HELP" = "1" ]; then
 Usage: ./install.sh [options]
 
 Options:
-  --install-source    Build Hyprland from source (default)
-  --install-ubuntu    Legacy alias of --install-source
-  --install-ppa       Legacy alias of --install-source
+  --install-source    Build Hyprland from source
+  --install-ubuntu    Install Hyprland via apt/ppa
+  --install-ppa       Install Hyprland via apt/ppa
   --dry-run           Print what would be done and exit (non-interactive)
   -h, --help          Show this help and exit
 
 Notes:
+- On Ubuntu 24.04, installer defaults to PPA mode unless --install-source is set.
 - Source checkout is locked to branch '${HYPRLAND_SOURCE_BRANCH}'.
-- Branch names containing 'dev' or 'src-build' are refused.
 USAGE
     exit 0
 fi
 
-# Non-interactive dry-run exits early (before any prompts)
+# Dry-run mode is forwarded to child scripts
 if [ "$DO_DRY_RUN" = "1" ]; then
-    echo "[DRY-RUN] Hyprland install mode: $INSTALL_MODE"
-    echo "[DRY-RUN] Would build Hyprland from source repo: $HYPRLAND_SOURCE_REPO"
-    echo "[DRY-RUN] Would checkout branch: $HYPRLAND_SOURCE_BRANCH"
-    echo "[DRY-RUN] Would install terminal stack: alacritty zellij tmux"
-    echo "[DRY-RUN] Would install COSMIC stack: cosmic-panel + (cosmic-launcher|cosmic-run)"
-    exit 0
+    export DRY_RUN=1
 fi
 
 # Function to print colorful text
@@ -76,16 +71,51 @@ print_color() {
     printf "%b%s%b\n" "$1" "$2" "$RESET"
 }
 
+# Source global helpers for OS detection and apt strategy
+source "$(dirname "$(readlink -f "$0")")/install-scripts/Global_functions.sh"
+
+detect_os
+if [ "$OS_ID" != "ubuntu" ]; then
+    echo -e "${ERROR} This installer supports Ubuntu only. Detected: ${OS_ID}" 
+    exit 1
+fi
+
+if [ "$OS_VERSION_ID" = "24.04" ] && [ "$OS_CODENAME" = "noble" ] && [ "$INSTALL_MODE" = "auto" ]; then
+    INSTALL_MODE="ppa"
+elif [ "$INSTALL_MODE" = "auto" ]; then
+    INSTALL_MODE="source"
+fi
+
+if [ "$OS_VERSION_ID" != "24.04" ] && [ "$INSTALL_MODE" = "ppa" ]; then
+    echo -e "${WARN} PPA mode is optimized for Ubuntu 24.04. Continuing with current selection."
+fi
+
+if [ "$OS_VERSION_ID" != "24.04" ] || [ "$OS_CODENAME" != "noble" ]; then
+    if [ "${ALLOW_UNSUPPORTED_OS:-0}" != "1" ]; then
+        echo -e "${ERROR} This adapted installer targets Ubuntu 24.04 (noble). Detected ${OS_VERSION_ID} (${OS_CODENAME})."
+        echo -e "${NOTE} Set ALLOW_UNSUPPORTED_OS=1 to bypass this guard."
+        exit 1
+    fi
+fi
+
+if [ "$DO_DRY_RUN" = "1" ]; then
+    echo "[DRY-RUN] OS detected: ${OS_ID} ${OS_VERSION_ID} (${OS_CODENAME})"
+    echo "[DRY-RUN] Install mode: ${INSTALL_MODE}"
+    echo "[DRY-RUN] Portal backend: ${PORTAL_BACKEND:-hyprland}"
+    echo "[DRY-RUN] Would execute dependency, package, and optional component scripts without making changes."
+    exit 0
+fi
+
 # Display warning message
 printf "\n%.0s" {1..2}
 print_color $WARNING "
     █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█
-                KooL's UBUNTU 26.04 - Hyprland               
+                KooL's UBUNTU Hyprland Installer               
     █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█
 
-    This script builds Hyprland from the 26.04 source branch.
-    This is only supported on Ubuntu 26.04 or greater!
-    If you are not at that level do NOT continue!
+    Installer mode: ${INSTALL_MODE}.
+    Ubuntu 24.04 (noble) is supported with PPA mode.
+    Source mode is available for advanced users.
          
 "
 printf "\n%.0s" {1..2}
@@ -176,6 +206,13 @@ if ! dpkg -l | grep -w pciutils >/dev/null; then
     sudo apt install -y pciutils
     printf "\n%.0s" {1..1}
 fi
+
+PORTAL_BACKEND="${PORTAL_BACKEND:-hyprland}"
+if [ "$OS_VERSION_ID" = "24.04" ] && [ "$INSTALL_MODE" = "ppa" ]; then
+    PORTAL_BACKEND="${PORTAL_BACKEND:-hyprland}"
+fi
+export PORTAL_BACKEND
+echo "${INFO} Portal backend strategy: ${PORTAL_BACKEND}" | tee -a "$LOG"
 
 # Path to the install-scripts directory
 script_directory=install-scripts
@@ -342,6 +379,16 @@ dots="OFF"
 input_group="OFF"
 nvidia="OFF"
 
+UPGRADE_MODE="${UPGRADE_MODE:-0}"
+if [ -d "$HOME/.config/hypr" ] || [ -f "$HOME/.hyprland-install-marker" ]; then
+    UPGRADE_MODE=1
+fi
+export UPGRADE_MODE
+
+if [ "$UPGRADE_MODE" = "1" ]; then
+    echo "${NOTE} Existing Hyprland configuration detected. Running in UPGRADE_MODE=1" | tee -a "$LOG"
+fi
+
 # Function to load preset file
 load_preset() {
     if [ -f "$1" ]; then
@@ -418,7 +465,7 @@ if [ "$input_group_detected" == "true" ]; then
 fi
 
 # Conditionally add SDDM and SDDM theme options if no active login manager is found
-if ! check_services_running; then
+if [ "$UPGRADE_MODE" != "1" ] && ! check_services_running; then
     options_command+=(
         "sddm" "Install & configure SDDM login manager?" "OFF"
         "sddm_theme" "Download & Install Additional SDDM theme?" "OFF"
@@ -506,7 +553,16 @@ done
 printf "\n%.0s" {1..1}
 
 echo "${INFO} Running a ${SKY_BLUE}full system update...${RESET}" | tee -a "$LOG"
-sudo apt update
+if [ "${DRY_RUN:-0}" = "1" ]; then
+    echo "[DRY-RUN] sudo apt update" | tee -a "$LOG"
+else
+    sudo apt update
+fi
+
+if [ "$INSTALL_MODE" = "ppa" ] && [ "$OS_VERSION_ID" = "24.04" ]; then
+    export HYPR_USE_PPA=1
+    execute_script "hyprland-ppa-enable.sh"
+fi
 
 sleep 1
 # execute pre clean up
@@ -535,6 +591,12 @@ case "$INSTALL_MODE" in
     echo "${INFO} Building Hyprland from ${SKY_BLUE}source branch ${HYPRLAND_SOURCE_BRANCH}${RESET}..." | tee -a "$LOG"
     sleep 1
     build_hyprland_from_2604_branch
+    ;;
+  ppa)
+    echo "${INFO} Installing Hyprland via ${SKY_BLUE}apt/PPA mode${RESET}..." | tee -a "$LOG"
+    sleep 1
+    export HYPR_USE_PPA=1
+    execute_script "hyprland-ppa.sh"
     ;;
   *)
     echo "${ERROR} Unknown install mode: $INSTALL_MODE" | tee -a "$LOG"
